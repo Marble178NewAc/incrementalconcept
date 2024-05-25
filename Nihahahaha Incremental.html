@@ -7,7 +7,7 @@
                 text-align: center;
             }
             .upgradebuttons:hover {
-                background-color: #c2c2c2;
+                background-color: #8a8a8a;
             }
             html {
                 background-color: pink;
@@ -24,10 +24,20 @@
             .machine {
                 display: inline-block;
             }
-            #prestige {
+            #presbutton {
                 display: block;
                 margin-left: auto;
                 margin-right: auto;
+            }
+            .presupgrade {
+                width: 10cm;
+                height: 5cm;
+                font-size: 1cm;
+                border-width: 0.1cm;
+                border-radius: 0.1cm;
+            }
+            .presupgrade:hover {
+                background-color: #8a8a8a;
             }
         </style>
     </head>
@@ -39,16 +49,25 @@
         <h4 id="persec" class="currency">1 nihahahaha per sec</h4>
         <button id="upgrade" class="upgradebuttons">Add +0.45 to the Nihahahaha/s<br>Cost: 10 Nihahahahas</button>
         <button id="upgradeupgrade" class="upgradebuttons">Increase the amount of upgrade 1: +0<br>Cost: 100 Nihahahahas</button>
+        <button id="boostupgrade" class="upgradebuttons">Drains Atsui in return of multiplier for machine (10 atsui per 1x)<br>Multiplier: 1x</button>
         <hr>
         <h1 id="kufufufu" class="currency">0 kufufufu</h1>
         <h4 id="multihaha" class="currency">Boosting nihahahaha by 1x</h4>
         <h2 class="machine">1st</h2>
-        <h2 id="buying1" class="machine" style="margin-left: 10cm;">1</h2>
+        <h2 class="machine" id="buying1" style="margin-left: 10cm;">1</h2>
         <button id="machine1" class="machine, upgradebuttons" style="float: right; margin-top: 1.3%;">Buy Machine<br>Cost: 200 Nihahahahas</button>
         <br>
         <h2 class="machine">2nd</h2>
         <h2 class="machine" id="buying2" style="margin-left: 10cm;">1</h2>
-        <button id="machine2" class="machine, upgradebuttons" style="float: right; margin-top: 1.3%;">Buy Machine<br>Cost: 10000 Nihahahaha</button>
+        <button id="machine2" class="machine, upgradebuttons" style="float: right; margin-top: 1.3%;">Buy Machine<br>Cost: 10K Nihahahahas</button>
+        <br>
+        <h2 class="machine" id="title3">3rd</h2>
+        <h2 class="machine" id="buying3" style="margin-left: 10cm;">1</h2>
+        <button id="machine3" class="machine, upgradebuttons" style="float: right; margin-top: 1.3%;">Buy Machine<br>Cost: 100M Nihahahahas</button>
+        <hr>
+        <h1 id="prestext" class="currency">0 prestiges</h1>
+        <button id="presbutton" class="upgradebuttons">Prestige!<br>Reach 1M Nihahahaha</button>
+        <button id="presup1" class="presupgrade">Unlock boost machines upgrade<br>Cost: 10000 atsui</button>
         <script>
             const upgrade = document.getElementById("upgrade")
             const upgrade2 = document.getElementById("upgradeupgrade")
@@ -56,13 +75,20 @@
             const nihaperseco = document.getElementById("persec")
             var koyuki = 10
             var koyukipers = 0
+            var highestkoyuki = 0
             var cost = 10
             var bonus = 0
             var cost2 = 100
             var machines1 = 0
             var machines2 = 0
+            var machines3 = 0
             var kufufufufufu = 0
             var multiniha = 1
+            var prestige = 0
+            var disabled1 = 0
+            var bost = 0
+            var boost = 0
+            var presmount = Math.floor(highestkoyuki / 1e6)
             const STOPPED = Symbol.for("@@gameloop/stopped");
             const PAUSED = Symbol.for("@@gameloop/paused");
             const RUNNING = Symbol.for("@@gameloop/running");
@@ -144,15 +170,21 @@
             }
             const loop = new GameLoop()
             loop.onUpdate = function(dt, t) {
-                koyuki += (koyukipers * Math.max(1,multiniha)) / 1000 * dt
+                koyuki += ((koyukipers * Math.max(1,multiniha)) / (1000 / (prestige + 1))) * dt
                 kufufufufufu += (machines1 / 1000) * dt
                 machines1 += (machines2 / 1000) * dt
+                machines2 += (machines3 / 1000) * dt
+                machines1, machines2, machines3 *= boost
                 multiniha = Math.pow(kufufufufufu,0.5)
+                if (koyuki > highestkoyuki) {
+                    highestkoyuki = koyuki
+                }
+                presmount = Math.floor(highestkoyuki / 1e6)
                 save()
             }
             loop.onRender = function(i) {
                 nihahahahaha.innerHTML = koyuki.toFixed(2) + " nihahahahas"
-                nihaperseco.innerHTML = (koyukipers * Math.max(1,multiniha)).toFixed(2) + " nihahahaha per sec"
+                nihaperseco.innerHTML = ((koyukipers * Math.max(1,multiniha)) * (prestige + 1)).toFixed(2) + " nihahahaha per sec"
                 upgrade.innerText = "Add +" + (1 + bonus).toFixed(1) + " to the Nihahahaha/s\nCost: " + Math.floor(cost) + " Nihahahahas"
                 if (cost >= 20) {
                     upgrade2.style.display = "block"
@@ -161,17 +193,46 @@
                     upgrade2.style.display = "none"
                 }
                 upgrade2.innerText = "Increase the amount of upgrade 1 by +0.4: +" + bonus.toFixed(1) + "\nCost: " + Math.floor(cost2) + " Nihahahahas"
+                if (bost == 1) {
+                    document.getElementById("boostupgrade").style.display = "block"
+                }
+                else if (bost == 0) {
+                    document.getElementById("boostupgrade").style.display = "none"
+                }
                 document.getElementById("buying1").innerHTML = machines1.toFixed(2)
-                document.getElementById("buying2").innerHTML = machines2
+                document.getElementById("buying2").innerHTML = machines2.toFixed(2)
+                document.getElementById("buying3").innerHTML = machines3
                 document.getElementById("kufufufu").innerHTML = kufufufufufu.toFixed(2) + " kufufufu"
-                document.getElementById("multihaha").innerHTML = "Boosting nihahahaha by " + Math.max(1,multiniha) + "x"
+                document.getElementById("multihaha").innerHTML = "Boosting nihahahaha by " + Math.max(1,multiniha).toFixed(2) + "x"
+                if (highestkoyuki >= 1e6) {
+                    document.getElementById("presbutton").style.display = "block"
+                }
+                else {
+                    document.getElementById("presbutton").style.display = "none"
+                }
+                document.getElementById("presbutton").innerText = "Gain " + presmount + " atsui!\nReach " + presmount + "M Nihahahaha"
+                if (prestige === 1) {
+                    document.getElementById("prestext").innerHTML = Math.floor(prestige) + " atsui"
+                }
+                else {
+                    document.getElementById("prestext").innerHTML = Math.floor(prestige) + " atsuis"
+                }
+                if (disabled1 == 1) {
+                    document.getElementById("presup1").disabled = true;
+                    document.getElementById("presup1").innerText = "Unlock boost machines upgrade\nBought"
+                }
+                else {
+                    document.getElementById("presup1").disabled = false;
+                    document.getElementById("presup1").innerText = "Unlock boost machines upgrade\nCost: 10 atsuis"
+                }
+                document.getElementById("boostupgrade").innerText = "Drains Atsui in return of multiplier for machine (10 atsui per +0.1x)\nMultiplier: " + boost + "x"
             }
             upgrade.addEventListener("click", event => {
                 if (koyuki >= Math.floor(cost)) {
                     koyuki -= Math.floor(cost)
                     koyukipers += (1 + bonus)
                     cost *= 1.2
-                    // document.getElementById("lol").play()
+                   /// document.getElementById("lol").play()
                 }
             })
             upgrade2.addEventListener("click", event => {
@@ -179,19 +240,55 @@
                     koyuki -= Math.floor(cost2)
                     bonus += 0.4
                     cost2 *= 1.5
-                    // document.getElementById("lol").play()
+                   // document.getElementById("lol").play()
+                }
+            })
+            document.getElementById("boostupgrade").addEventListener("click", event => {
+                if (prestige >= 10) {
+                    prestige -= 10
+                    boost += 0.1
                 }
             })
             document.getElementById("machine1").addEventListener("click", event => {
                 if (koyuki >= 200) {
                     koyuki -= 200
                     machines1++
+                  //  document.getElementById("lol").play()
                 }
             })
             document.getElementById("machine2").addEventListener("click", event => {
                 if (koyuki >= 10000) {
                     koyuki -= 10000
                     machines2++
+                  //  document.getElementById("lol").play()
+                }
+            })
+            document.getElementById("machine3").addEventListener("click", event => {
+                if (koyuki >= 1e8) {
+                    koyuki -= 1e8
+                    machines3++
+                }
+            })
+            document.getElementById("presbutton").addEventListener("click", event => {
+                koyuki = 10
+                koyukipers = 0
+                highestkoyuki = 0
+                cost = 10
+                bonus = 0
+                cost2 = 100
+                machines1 = 0
+                machines2 = 0
+                machines3 = 0
+                kufufufufufu = 0
+                prestige = prestige + presmount
+              //  document.getElementById("lol").play()
+            })
+            document.getElementById("presup1").addEventListener("click", event => {
+                if (prestige >= 10 && disabled1 == 0) {
+                    prestige -= 10
+                    document.getElementById("presup1").disabled = true
+                    disabled1 = 1
+                    bost = 1
                 }
             })
             loop.start()
@@ -211,7 +308,12 @@
                     bonus: bonus,
                     machine1: machines1,
                     machine2: machines2,
-                    persecond: koyukipers
+                    machine3: machines3,
+                    persecond: koyukipers,
+                    prestige: prestige,
+                    bost: bost,
+                    disabled1: disabled1,
+                    boost: boost
                 }
                 localStorage.setItem("save",JSON.stringify(save));
             }
@@ -225,7 +327,12 @@
                 if (typeof savegame.bonus !== "undefined") bonus = savegame.bonus;
                 if (typeof savegame.machine1 !== "undefined") machines1 = savegame.machine1;
                 if (typeof savegame.machine2 !== "undefined") machines2 = savegame.machine2;
+                if (typeof savegame.machine3 !== "undefined") machines3 = savegame.machine3;
                 if (typeof savegame.persecond !== "undefined") koyukipers = savegame.persecond;
+                if (typeof savegame.prestige !== "undefined") prestige = savegame.prestige;
+                if (typeof savegame.bost !== "undefined") bost = savegame.bost;
+                if (typeof savegame.disabled1 !== "undefined") disabled1 = savegame.disabled1;
+                if (typeof savegame.boost !== "undefined") boost = savegame.boost;
             }
             if(pageAccessedByReload) {
                 load()
